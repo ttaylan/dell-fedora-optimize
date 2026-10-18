@@ -1,0 +1,19 @@
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+toolkit-accessibility=false
+show-battery-percentage=true
+
+[org/gnome/desktop/peripherals/mouse]
+natural-scroll=true
+speed=-0.62393162393162394
+
+[org/gnome/desktop/peripherals/touchpad]
+two-finger-scrolling-enabled=true
+tap-to-click=true
+
+[org/gnome/desktop/privacy]
+report-technical-problems=false
+
+[org/gnome/shell/keybindings]
+screenshot=@as []
+show-screenshot-ui=['<Shift><Alt>4']

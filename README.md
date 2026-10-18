@@ -1,6 +1,6 @@
 # Dell Core i7-11390H / Intel Iris Xe Optimization Suite (Fedora Wayland)
 
-Complete, one-command hardware, kernel, BIOS, power-longevity, hibernation, and Xbox Remote Play optimization repository for Dell Inspiron / Latitude (Intel Core i7-11390H + Intel Iris Xe Graphics + 16 GB RAM + NVMe Btrfs).
+Complete, one-command hardware, kernel, BIOS, power-longevity, hibernation, DNF/codec, and Xbox Remote Play optimization repository for Dell Inspiron / Latitude (Intel Core i7-11390H + Intel Iris Xe Graphics + 16 GB RAM + NVMe Btrfs).
 
 ## Quick Restore After OS Reinstall
 
@@ -46,8 +46,17 @@ Reshapes the 35W H-series CPU into a cool, silent 12W U-series efficiency envelo
 - Enables Intel Iris Xe VA-API zero-copy hardware video decoding and 5.3 ms PipeWire audio latency.
 - Smart AC/Battery detection: uses `performance` + `gamemoderun` when plugged into AC, and keeps the cool 12W efficiency profile when streaming on battery.
 
-### 5. Kernel, GPU, Btrfs & Daemon Cleanup
+### 5. DNF, RPM Fusion, Hardware VA-API Codecs, Flathub & GNOME Settings
+- **DNF Speed (`configs/dnf.conf`):** `max_parallel_downloads=10`, `defaultyes=True`, `keepcache=False` (avoids multi-GB cache bloat).
+- **RPM Fusion & Full Hardware Codecs:** Enables `rpmfusion-free` & `rpmfusion-nonfree`, swaps `ffmpeg-free` for full `ffmpeg`, and installs `intel-media-driver`, `libva-utils`, GStreamer codecs, `fuse-libs` (AppImage support), and `gnome-tweaks`.
+- **Unfiltered Flathub:** Removes the Fedora Flathub filter to unlock all Flatpak apps.
+- **Bloat Removal:** Removes `libreoffice*`, `unoconv`, and `ibus-typing-booster`.
+- **GNOME Desktop Preferences (`configs/gnome-settings.dconf`):** Restores dark theme (`prefer-dark`), battery percentage indicator, touchpad tap-to-click & two-finger scroll, natural mouse scroll, `toolkit-accessibility=false`, privacy telemetry off, and `<Shift><Alt>4` screenshot shortcut.
+
+### 6. Kernel, ZRAM, Journald, Btrfs & Daemon Diet
 - **Intel Iris Xe GuC (`v70.1.1`) & HuC (`v7.9.3`) Firmware Offload:** `i915.enable_guc=3`.
-- **Network Stack (`configs/99-pc-optimization.conf`):** TCP `bbr` + `fq` qdisc + 16 MB UDP/TCP WebRTC buffers.
-- **Btrfs Mount Tuning:** `noatime,commit=60` on `/` and `/home`.
-- **Service Diet:** Masks background `gnome-software.service`, removes `ibus-typing-booster`, and disables 25+ unused enterprise/VM daemons (saving ~1.1 GiB of idle RAM).
+- **Network Stack (`configs/99-pc-optimization.conf` & `configs/bbr.conf`):** TCP `bbr` + `fq` qdisc + 16 MB UDP/TCP WebRTC buffers + `inotify` watcher limits (`524288`).
+- **ZRAM (`configs/zram-generator.conf`):** Full-RAM `zstd` compressed swap at priority `100`.
+- **Journald Cap (`configs/00-journal-size.conf`):** Caps `/var/log/journal` to `200M`.
+- **Btrfs Mount & NVMe TRIM:** `noatime,commit=60` on `/` and `/home` + `fstrim.timer` enabled.
+- **Service Diet:** Disables `NetworkManager-wait-online.service` (saves 6s boot time), masks background `gnome-software.service`, and disables 25+ unused enterprise/VM daemons (saving ~1.1 GiB of idle RAM).

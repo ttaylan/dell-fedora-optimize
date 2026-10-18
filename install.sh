@@ -10,12 +10,15 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TARGET_USER="${SUDO_USER:-$USER}"
 TARGET_HOME="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
 
-echo "=== Installing User CLI Tools (xbox-gaming-mode & battery-mode) ==="
+echo "=== Installing User CLI Tools & GNOME Desktop Preferences ==="
 mkdir -p "$TARGET_HOME/.local/bin" "$TARGET_HOME/.local/share/applications"
 chmod +x "$REPO_DIR/xbox-gaming-mode.py" "$REPO_DIR/battery-mode.py"
 ln -sf "$REPO_DIR/xbox-gaming-mode.py" "$TARGET_HOME/.local/bin/xbox-gaming-mode"
 ln -sf "$REPO_DIR/battery-mode.py" "$TARGET_HOME/.local/bin/battery-mode"
 chown -h "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.local/bin/xbox-gaming-mode" "$TARGET_HOME/.local/bin/battery-mode"
+
+# Apply GNOME dconf preferences (dark mode, touchpad, privacy, keybindings)
+sudo -u "$TARGET_USER" dconf load / < "$REPO_DIR/configs/gnome-settings.dconf" 2>/dev/null || true
 
 # Mask background GNOME Software daemon & disable Evolution alarm daemon for user
 sudo -u "$TARGET_USER" systemctl --user mask gnome-software.service 2>/dev/null || true
@@ -26,12 +29,32 @@ if [ -f /etc/xdg/autostart/org.gnome.Evolution-alarm-notify.desktop ]; then
     chown "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.config/autostart/org.gnome.Evolution-alarm-notify.desktop"
 fi
 
-echo "=== Applying Root System, Kernel, BIOS, Power & Hibernation Optimizations ==="
+echo "=== Applying Root System, DNF, Codecs, Kernel, BIOS, Power & Hibernation Optimizations ==="
 pkexec bash -c "
 set -euo pipefail
 
-# 1. Kernel Sysctl Optimizations (BBR + FQ + 16MB WebRTC Buffers + VFS/Memory)
+# 0. DNF Optimization, RPM Fusion, Hardware VA-API Codecs, Flathub & Bloat Removal
+cp '$REPO_DIR/configs/dnf.conf' /etc/dnf/dnf.conf
+
+FEDORA_VER=\$(rpm -E %fedora)
+dnf install -y \
+    \"https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-\${FEDORA_VER}.noarch.rpm\" \
+    \"https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\${FEDORA_VER}.noarch.rpm\" 2>/dev/null || true
+
+dnf swap -y ffmpeg-free ffmpeg --allowerasing 2>/dev/null || true
+dnf install -y intel-media-driver libva-utils gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly fuse-libs gnome-tweaks gamemode 2>/dev/null || true
+dnf remove -y ibus-typing-booster 'libreoffice*' unoconv 2>/dev/null || true
+
+flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
+flatpak remote-modify --no-filter --enable flathub 2>/dev/null || true
+
+# 1. Kernel Sysctl, BBR Autoload, ZRAM & Journald Capping
+mkdir -p /etc/modules-load.d /etc/systemd/journald.conf.d
+cp '$REPO_DIR/configs/bbr.conf' /etc/modules-load.d/bbr.conf
+modprobe tcp_bbr 2>/dev/null || true
 cp '$REPO_DIR/configs/99-pc-optimization.conf' /etc/sysctl.d/99-pc-optimization.conf
+cp '$REPO_DIR/configs/zram-generator.conf' /etc/systemd/zram-generator.conf
+cp '$REPO_DIR/configs/00-journal-size.conf' /etc/systemd/journald.conf.d/00-journal-size.conf
 sysctl --system >/dev/null
 
 # 2. Intel Iris Xe GuC/HuC Firmware Offload, Audio Powersave & Watchdog Blacklist
@@ -57,8 +80,9 @@ if [ -f /etc/chromium/chromium.conf ]; then
 fi
 usermod -aG gamemode '$TARGET_USER' 2>/dev/null || true
 
-# 6. Btrfs Mount Optimization (commit=60)
+# 6. Btrfs Mount Optimization (noatime,commit=60) & NVMe TRIM
 sed -i -E 's/(subvol=(root|home),compress=zstd:1)( )/\1,noatime,commit=60 /g' /etc/fstab
+systemctl enable --now fstrim.timer 2>/dev/null || true
 
 # 7. Create 16GB Btrfs Swapfile & Configure suspend-then-hibernate (2h delay)
 if [ ! -d /var/swap ]; then
@@ -118,9 +142,8 @@ if [ -d \"\$BIOS_DIR\" ]; then
     done
 fi
 
-# 10. Disable Unused Background System Daemons & Remove ibus-typing-booster
-dnf remove -y ibus-typing-booster 2>/dev/null || true
-systemctl disable --now rsyslog.service abrt-journal-core.service abrt-oops.service abrt-xorg.service abrtd.service switcheroo-control.service sssd.service sssd-kcm.socket pcscd.socket livesys.service livesys-late.service vboxservice.service vmtoolsd.service qemu-guest-agent.service iscsi.service iscsid.socket iscsiuio.socket mdmonitor.service lvm2-monitor.service ModemManager.service virtqemud.socket virtnetworkd.socket virtnodedevd.socket virtnwfilterd.socket virtsecretd.socket virtstoraged.socket 2>/dev/null || true
+# 10. Disable Boot-Blocking & Unused Background System Daemons
+systemctl disable --now NetworkManager-wait-online.service rsyslog.service abrt-journal-core.service abrt-oops.service abrt-xorg.service abrtd.service switcheroo-control.service sssd.service sssd-kcm.socket pcscd.socket livesys.service livesys-late.service vboxservice.service vmtoolsd.service qemu-guest-agent.service iscsi.service iscsid.socket iscsiuio.socket mdmonitor.service lvm2-monitor.service ModemManager.service virtqemud.socket virtnetworkd.socket virtnodedevd.socket virtnwfilterd.socket virtsecretd.socket virtstoraged.socket 2>/dev/null || true
 
 # 11. Enable & Start Optimization Services
 udevadm control --reload-rules
