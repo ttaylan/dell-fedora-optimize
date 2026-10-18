@@ -156,6 +156,7 @@ if [ -d \"\$BIOS_DIR\" ]; then
         [DynTunML]=Enabled
         [SmartErrors]=Enabled
         [KbdBacklightTimeoutBatt]=15s
+        [ThermalManagement]=Quiet
     )
     for k in \"\${!BIOS_SETTINGS[@]}\"; do
         if [ -w \"\$BIOS_DIR/\$k/current_value\" ]; then
