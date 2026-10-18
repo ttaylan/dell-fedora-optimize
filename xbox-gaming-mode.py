@@ -186,31 +186,9 @@ class GamingMode:
             signal.signal(sig, lambda s, f: sys.exit(0))
 
         try:
-            on_ac = True
-            try:
-                with open("/sys/class/power_supply/AC/online", "r") as f:
-                    on_ac = f.read().strip() == "1"
-            except Exception:
-                pass
-
             self.optimize_wifi()
             self.mute_notifications()
-            if on_ac:
-                self.enable_performance_profile()
-            else:
-                print("[GamingMode] Running on battery: keeping efficient CPU power profile while optimizing Wi-Fi & VA-API.")
-
-            # Check if gamemoderun is supported and user is in gamemode group (only use on AC)
-            use_gamemoderun = False
-            if on_ac:
-                try:
-                    import pwd, grp
-                    username = pwd.getpwuid(os.getuid()).pw_name
-                    user_groups = [g.gr_name for g in grp.getgrall() if username in g.gr_mem]
-                    if "gamemode" in user_groups and os.path.exists("/usr/bin/gamemoderun"):
-                        use_gamemoderun = True
-                except Exception:
-                    pass
+            print("[GamingMode] Keeping ultra-efficient CPU profile active while optimizing Wi-Fi, VA-API & audio.")
 
             # Build Chromium command with low-latency, hardware-acceleration & high-priority flags
             chromium_args = [
@@ -233,12 +211,8 @@ class GamingMode:
                 "--what=idle:sleep",
                 "--who=Xbox Gaming Mode",
                 "--why=Streaming Xbox Remote Play",
+                CHROMIUM_BIN,
             ]
-
-            if use_gamemoderun:
-                cmd.append("/usr/bin/gamemoderun")
-
-            cmd.append(CHROMIUM_BIN)
             cmd.extend(chromium_args)
 
             # Low-latency audio environment for PipeWire & PulseAudio
