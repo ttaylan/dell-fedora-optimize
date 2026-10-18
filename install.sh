@@ -17,8 +17,22 @@ ln -sf "$REPO_DIR/xbox-gaming-mode.py" "$TARGET_HOME/.local/bin/xbox-gaming-mode
 ln -sf "$REPO_DIR/battery-mode.py" "$TARGET_HOME/.local/bin/battery-mode"
 chown -h "$TARGET_USER:$TARGET_USER" "$TARGET_HOME/.local/bin/xbox-gaming-mode" "$TARGET_HOME/.local/bin/battery-mode"
 
-# Apply GNOME dconf preferences (dark mode, touchpad, privacy, keybindings)
+# Apply GNOME dconf preferences (dark mode, touchpad, privacy, keybindings, ddcutil extension)
 sudo -u "$TARGET_USER" dconf load / < "$REPO_DIR/configs/gnome-settings.dconf" 2>/dev/null || true
+
+# Install Brightness Control using ddcutil GNOME Extension
+sudo -u "$TARGET_USER" python3 -c '
+import urllib.request, json, subprocess
+try:
+    url = "https://extensions.gnome.org/extension-info/?uuid=display-brightness-ddcutil@themightydeity.github.com&shell_version=50"
+    data = json.loads(urllib.request.urlopen(url, timeout=10).read().decode())
+    dl_url = "https://extensions.gnome.org" + data["download_url"]
+    zip_path = "/tmp/display-brightness-ddcutil.zip"
+    urllib.request.urlretrieve(dl_url, zip_path)
+    subprocess.run(["gnome-extensions", "install", "--force", zip_path], check=False)
+except Exception as e:
+    print("Notice: Could not auto-download ddcutil GNOME extension:", e)
+'
 
 # Mask background GNOME Software daemon & disable Evolution alarm daemon for user
 sudo -u "$TARGET_USER" systemctl --user mask gnome-software.service 2>/dev/null || true
@@ -33,7 +47,7 @@ echo "=== Applying Root System, DNF, Codecs, Kernel, BIOS, Power & Hibernation O
 pkexec bash -c "
 set -euo pipefail
 
-# 0. DNF Optimization, RPM Fusion, Hardware VA-API Codecs, Flathub & Bloat Removal
+# 0. DNF Optimization, RPM Fusion, Hardware VA-API Codecs, ddcutil, Flathub & Bloat Removal
 cp '$REPO_DIR/configs/dnf.conf' /etc/dnf/dnf.conf
 
 FEDORA_VER=\$(rpm -E %fedora)
@@ -42,8 +56,12 @@ dnf install -y \
     \"https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-\${FEDORA_VER}.noarch.rpm\" 2>/dev/null || true
 
 dnf swap -y ffmpeg-free ffmpeg --allowerasing 2>/dev/null || true
-dnf install -y intel-media-driver libva-utils gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly fuse-libs gnome-tweaks gamemode 2>/dev/null || true
+dnf install -y intel-media-driver libva-utils gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly fuse-libs gnome-tweaks gamemode ddcutil 2>/dev/null || true
 dnf remove -y ibus-typing-booster 'libreoffice*' unoconv 2>/dev/null || true
+
+groupadd -f i2c
+usermod -aG i2c '$TARGET_USER' 2>/dev/null || true
+cp '$REPO_DIR/configs/60-ddcutil-i2c.rules' /etc/udev/rules.d/60-ddcutil-i2c.rules
 
 flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo 2>/dev/null || true
 flatpak remote-modify --no-filter --enable flathub 2>/dev/null || true

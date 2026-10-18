@@ -14,6 +14,13 @@ tap-to-click=true
 [org/gnome/desktop/privacy]
 report-technical-problems=false
 
+[org/gnome/shell]
+enabled-extensions=['background-logo@fedorahosted.org', 'nightthemeswitcher@romainvigier.fr', 'display-brightness-ddcutil@themightydeity.github.com']
+
+[org/gnome/shell/extensions/display-brightness-ddcutil]
+button-location=1
+hide-system-indicator=true
+
 [org/gnome/shell/keybindings]
 screenshot=@as []
 show-screenshot-ui=['<Shift><Alt>4']
