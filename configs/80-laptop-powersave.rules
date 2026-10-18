@@ -1,0 +1,5 @@
+# Enable runtime PM for all PCI devices
+ACTION=="add", SUBSYSTEM=="pci", ATTR{power/control}="auto"
+# Enable SATA Active Link Power Management
+ACTION=="add", SUBSYSTEM=="scsi_host", KERNEL=="host*", ATTR{link_power_management_policy}="med_power_with_dipm"
+SUBSYSTEM=="power_supply", ATTR{type}=="Mains", RUN+="/usr/local/bin/apply-battery-efficiency.sh"

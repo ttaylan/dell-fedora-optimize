@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Xbox Remote Play
+Exec=/home/tuna/.local/bin/xbox-gaming-mode
+Icon=/home/tuna/.local/share/icons/hicolor/512x512/apps/chrome-amhjdkepnfmcepcijnjfhhoejoldjngh-Default.png
+StartupWMClass=crx_amhjdkepnfmcepcijnjfhhoejoldjngh

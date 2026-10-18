@@ -1,0 +1,10 @@
+[Unit]
+Description=Apply Ultra-Low-Power Battery Efficiency Tuning
+After=multi-user.target suspend.target hibernate.target hybrid-sleep.target tuned.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/apply-battery-efficiency.sh
+
+[Install]
+WantedBy=multi-user.target suspend.target hibernate.target hybrid-sleep.target

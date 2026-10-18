@@ -1,0 +1,12 @@
+[Unit]
+Description=Disable Dell BD PROCHOT 200MHz CPU Throttle
+DefaultDependencies=no
+After=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/disable-bd-prochot.py
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
