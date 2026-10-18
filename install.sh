@@ -163,7 +163,12 @@ fi
 # 10. Disable Boot-Blocking & Unused Background System Daemons
 systemctl disable --now NetworkManager-wait-online.service rsyslog.service abrt-journal-core.service abrt-oops.service abrt-xorg.service abrtd.service switcheroo-control.service sssd.service sssd-kcm.socket pcscd.socket livesys.service livesys-late.service vboxservice.service vmtoolsd.service qemu-guest-agent.service iscsi.service iscsid.socket iscsiuio.socket mdmonitor.service lvm2-monitor.service ModemManager.service virtqemud.socket virtnetworkd.socket virtnodedevd.socket virtnwfilterd.socket virtsecretd.socket virtstoraged.socket 2>/dev/null || true
 
-# 11. Enable & Start Optimization Services
+# 11. Enable & Start Optimization Services + 60%-80% Battery Protection
+if [ -d /sys/class/power_supply/BAT0 ]; then
+    echo Custom > /sys/class/power_supply/BAT0/charge_types 2>/dev/null || true
+    echo 60 > /sys/class/power_supply/BAT0/charge_control_start_threshold 2>/dev/null || true
+    echo 80 > /sys/class/power_supply/BAT0/charge_control_end_threshold 2>/dev/null || true
+fi
 udevadm control --reload-rules
 systemctl daemon-reload
 systemctl enable --now disable-bd-prochot.service battery-efficiency.service
