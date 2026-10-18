@@ -18,8 +18,13 @@ report-technical-problems=false
 enabled-extensions=['background-logo@fedorahosted.org', 'nightthemeswitcher@romainvigier.fr', 'display-brightness-ddcutil@themightydeity.github.com']
 
 [org/gnome/shell/extensions/display-brightness-ddcutil]
+allow-zero-brightness=true
 button-location=1
+ddcutil-additional-args='--noverify --skip-ddc-checks'
+ddcutil-sleep-multiplier=4.0
 hide-system-indicator=true
+show-value-label=true
+step-change-keyboard=10.0
 
 [org/gnome/shell/keybindings]
 screenshot=@as []
