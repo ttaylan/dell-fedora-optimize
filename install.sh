@@ -88,6 +88,9 @@ cp '$REPO_DIR/configs/99-disable-bd-prochot.rules' /etc/udev/rules.d/99-disable-
 
 # 4. Ultra-Low-Power Battery Efficiency Profile (2.9GHz Base, 12W/15W RAPL, 700MHz GPU, Quiet EC)
 cp '$REPO_DIR/configs/ppd.conf' /etc/tuned/ppd.conf
+mkdir -p /etc/tuned/profiles/balanced /etc/tuned/profiles/balanced-battery
+printf '[main]\ninclude=powersave\n' > /etc/tuned/profiles/balanced/tuned.conf
+printf '[main]\ninclude=powersave\n' > /etc/tuned/profiles/balanced-battery/tuned.conf
 cp '$REPO_DIR/configs/apply-battery-efficiency.sh' /usr/local/bin/apply-battery-efficiency.sh
 chmod +x /usr/local/bin/apply-battery-efficiency.sh
 cp '$REPO_DIR/configs/battery-efficiency.service' /etc/systemd/system/battery-efficiency.service
