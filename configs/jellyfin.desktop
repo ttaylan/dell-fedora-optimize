@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Terminal=false
+Type=Application
+Name=Jellyfin
+Exec=/usr/lib64/chromium-browser/chromium-browser.sh --profile-directory=Default --unsafely-treat-insecure-origin-as-secure=http://192.168.1.7:8096 --app=http://192.168.1.7:8096
+Icon=/home/tuna/.local/share/icons/hicolor/512x512/apps/chrome-bgfpaepelljeaachdnhniilpkkanmngm-Default.png
+StartupWMClass=192.168.1.7
