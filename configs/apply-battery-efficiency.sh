@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 # Ultra-Low-Power Battery Efficiency Profile (i7-11390H + Iris Xe)
 
-# 0. Ensure TuneD / PowerProfiles stays in powersave so it never fights our settings
-tuned-adm profile powersave 2>/dev/null || true
-
 # 1. Disable CPU Turbo Boost (cap at 2.9 GHz base clock to avoid 1.35V spikes)
 [ -w /sys/devices/system/cpu/intel_pstate/no_turbo ] && echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo
 [ -w /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost ] && echo 0 > /sys/devices/system/cpu/intel_pstate/hwp_dynamic_boost
