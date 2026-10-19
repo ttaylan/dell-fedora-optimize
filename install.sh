@@ -146,7 +146,7 @@ dracut -f
 BIOS_DIR=/sys/class/firmware-attributes/dell-wmi-sysman/attributes
 if [ -d \"\$BIOS_DIR\" ]; then
     declare -A BIOS_SETTINGS=(
-        [Fastboot]=Thorough
+        [Fastboot]=Minimal
         [WarningsAndErr]=ContWrnErr
         [PowerWarn]=Disabled
         [TelemetryAccessLvl]=Disabled

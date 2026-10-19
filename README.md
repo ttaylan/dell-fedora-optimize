@@ -39,7 +39,7 @@ Reshapes the 35W H-series CPU into a cool, silent 12W U-series efficiency envelo
   - `battery-mode protect` — Locks charging between **60% and 80%** to maximize lithium-ion lifespan
   - `battery-mode adaptive` — Enables Dell Adaptive charging
 - **`disable-bd-prochot.py` (`MSR 0x1FC`):** Automatically clears bit 0 of `MSR 0x1FC` at boot and on AC/battery plug events so third-party batteries never trigger Dell's 200 MHz CPU throttle.
-- **Dell BIOS Settings (`dell-wmi-sysman`):** Keeps `Fastboot = Thorough` (so replacement battery microcontroller completes its SMBus handshake at POST), sets `WarningsAndErr = ContWrnErr` and `PowerWarn = Disabled`, and disables Dell telemetry, SupportAssist OS Recovery, BIOSConnect, and network boot stacks.
+- **Dell BIOS Settings (`dell-wmi-sysman`):** Sets `Fastboot = Minimal` for faster POST boot times, sets `WarningsAndErr = ContWrnErr` and `PowerWarn = Disabled`, and disables Dell telemetry, SupportAssist OS Recovery, BIOSConnect, and network boot stacks.
 
 ### 4. Xbox Remote Play Gaming Mode (`xbox-gaming-mode.py`)
 - Disables Wi-Fi power-save while streaming for 0 ms jitter/ping, then restores it on exit.
