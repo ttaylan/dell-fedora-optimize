@@ -114,7 +114,8 @@ if [ ! -f /var/swap/swapfile ]; then
     btrfs filesystem mkswapfile --size 16g --uuid clear /var/swap/swapfile
 fi
 chmod 600 /var/swap/swapfile
-chcon -t swapfile_t /var/swap/swapfile 2>/dev/null || true
+restorecon -v /var/swap 2>/dev/null || chcon -u system_u -t var_t /var/swap 2>/dev/null || true
+chcon -u system_u -t swapfile_t /var/swap/swapfile 2>/dev/null || true
 if ! swapon --show | grep -q '/var/swap/swapfile'; then
     swapon -p 0 /var/swap/swapfile
 fi
