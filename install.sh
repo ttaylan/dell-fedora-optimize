@@ -130,6 +130,8 @@ MAJ_MIN=\$(lsblk -no MAJ:MIN \"\$ROOT_DEV\" | tr -d ' ')
 echo \"\$RESUME_OFFSET\" > /sys/power/resume_offset
 echo \"\$MAJ_MIN\" > /sys/power/resume
 
+mkdir -p -Z /var/lib/systemd/sleep 2>/dev/null || mkdir -p /var/lib/systemd/sleep
+restorecon -Rv /var/lib/systemd/sleep 2>/dev/null || true
 mkdir -p /etc/systemd/sleep.conf.d /etc/systemd/logind.conf.d /etc/dracut.conf.d
 cp '$REPO_DIR/configs/99-suspend-then-hibernate-sleep.conf' /etc/systemd/sleep.conf.d/99-suspend-then-hibernate.conf
 cp '$REPO_DIR/configs/99-suspend-then-hibernate-logind.conf' /etc/systemd/logind.conf.d/99-suspend-then-hibernate.conf
