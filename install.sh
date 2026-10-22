@@ -138,8 +138,12 @@ cp '$REPO_DIR/configs/99-suspend-then-hibernate-logind.conf' /etc/systemd/logind
 cp '$REPO_DIR/configs/99-resume.conf' /etc/dracut.conf.d/99-resume.conf
 ln -sf /usr/lib/systemd/system/systemd-suspend-then-hibernate.service /etc/systemd/system/systemd-suspend.service
 
-# 8. Kernel Boot Parameters & Initramfs Rebuild
+# 8. Kernel Boot Parameters, GRUB Fastboot & Initramfs Rebuild
 grubby --update-kernel=ALL --args=\"i915.enable_guc=3 nowatchdog nmi_watchdog=0 8250.nr_uarts=0 pcie_aspm.policy=powersupersave workqueue.power_efficient=1 resume=UUID=\${ROOT_UUID} resume_offset=\${RESUME_OFFSET}\"
+sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=0/' /etc/default/grub
+grep -q 'GRUB_TIMEOUT_STYLE' /etc/default/grub || echo 'GRUB_TIMEOUT_STYLE=hidden' >> /etc/default/grub
+grub2-editenv - set menu_auto_hide=1 2>/dev/null || true
+grub2-mkconfig -o /boot/grub2/grub.cfg 2>/dev/null || true
 dracut -f
 
 # 9. Dell BIOS Optimizations (Thorough Fastboot for Battery Auth + Telemetry/Recovery Off)
@@ -169,7 +173,7 @@ if [ -d \"\$BIOS_DIR\" ]; then
 fi
 
 # 10. Disable Boot-Blocking & Unused Background System Daemons
-systemctl disable --now NetworkManager-wait-online.service rsyslog.service abrt-journal-core.service abrt-oops.service abrt-xorg.service abrtd.service switcheroo-control.service sssd.service sssd-kcm.socket pcscd.socket livesys.service livesys-late.service vboxservice.service vmtoolsd.service qemu-guest-agent.service iscsi.service iscsid.socket iscsiuio.socket mdmonitor.service lvm2-monitor.service ModemManager.service virtqemud.socket virtnetworkd.socket virtnodedevd.socket virtnwfilterd.socket virtsecretd.socket virtstoraged.socket 2>/dev/null || true
+systemctl disable --now NetworkManager-wait-online.service rsyslog.service abrt-journal-core.service abrt-oops.service abrt-xorg.service abrtd.service switcheroo-control.service sssd.service sssd-kcm.socket pcscd.socket livesys.service livesys-late.service vboxservice.service vmtoolsd.service qemu-guest-agent.service iscsi.service iscsid.socket iscsiuio.socket mdmonitor.service lvm2-monitor.service ModemManager.service virtqemud.socket virtnetworkd.socket virtnodedevd.socket virtnwfilterd.socket virtsecretd.socket virtstoraged.socket systemd-homed.service remote-fs.target nfs-client.target gssproxy.service 2>/dev/null || true
 
 # 11. Enable & Start Optimization Services + 60%-80% Battery Protection
 if [ -d /sys/class/power_supply/BAT0 ]; then
